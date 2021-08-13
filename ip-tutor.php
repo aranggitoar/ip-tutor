@@ -114,17 +114,6 @@ function tutor_submenu_reorder_for_ip( $menu_order )
 	return $menu_order;
 }
 
-add_filter( 'tutor_course/single/lead_info', 'print_lead_info' );
-add_action( 'tutor_course/single/lead_meta/before', 'print_lead_info' );
-
-function print_lead_info( $value )
-{
-	//$value = preg_replace('/<a href[.+]\/wordpress\/profile\/[.+]</a>/', '<p>GGGGGGGGGONDES</p>', $value);
-	echo '<pre>'.print_r($value,true).'</pre>';
-	$value = str_replace('<a href="http://localhost/wordpress/profile/ajt">ajt</a>', '<p>KERUPUK</p>', $value);
-	return $value;
-}
-
 
 /**
  * Registering a metabox and inserting the view inside Tutor LMS's
