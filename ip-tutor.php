@@ -55,7 +55,7 @@ function register_ip_tutor_post_types() {
 		'show_ui' => true,
 		'show_in_menu' => false,
 		'show_in_rest' => true,
-		'supports' => array('title', 'editor', 'thumbnail'),
+		'supports' => array('title', 'thumbnail'),
 		'rewrite' => array('slug' => 'instructor'),
 	);
 
@@ -124,5 +124,31 @@ function print_lead_info( $value )
 	$value = str_replace('<a href="http://localhost/wordpress/profile/ajt">ajt</a>', '<p>KERUPUK</p>', $value);
 	return $value;
 }
+
+
+/**
+ * Registering a metabox and inserting the view inside Tutor LMS's
+ * course builder.
+ */
+
+function ip_tutor_meta_box( $echo = true ){
+	ob_start();
+	include IP_TUTOR_LOCATION.'/views/metabox/ip_instructor_metabox.php';
+	$output = ob_get_clean();
+
+	if ($echo){
+		echo $output;
+	} else{
+		return $output;
+	}
+}
+
+function register_meta_box_for_tutor(){
+	$cpt = "courses";
+	add_meta_box( 'ip-tutor-instructor', __( 'Instructor Page', 'tutor' ), 'ip_tutor_meta_box', $cpt);
+}
+
+add_action( 'add_meta_boxes', 'register_meta_box_for_tutor' );
+add_action( 'tutor_course_builder_metabox_before', 'ip_tutor_meta_box' );
 
 ?>
