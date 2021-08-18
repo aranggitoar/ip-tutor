@@ -1,5 +1,4 @@
-		
-		<div class="tutor-option-field-row">
+			<div class="tutor-option-field-row">
 		    <div class="tutor-option-field-label">
 		        <label for="">
 					<?php _e('Instructors', 'tutor'); ?> <br />

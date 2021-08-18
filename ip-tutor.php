@@ -33,6 +33,45 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'IP_TUTOR_LOCATION', dirname( __FILE__ ) );
 define( 'IP_TUTOR_LOCATION_URL', plugins_url( '', __FILE__ ) );
 
+// For debugging.
+function r($var)
+{
+	echo '<pre>';
+	print_r($var);
+	echo '</pre>';
+}
+
+function d($var)
+{
+	echo '<pre>';
+	var_dump($var);
+	echo '</pre>';
+}
+
+
+/**
+ * Array sanitization, taken from Tutor LMS.
+ * Reference: ./tutor/classes/Utils.php:1656-1672.
+ */
+
+function sanitize_array( $input = array() ) {
+	$array = array();
+  
+	if ( is_array( $input ) && count( $input ) ) {
+		foreach ( $input as $key => $value ) {
+			if ( is_array( $value )) {
+				$array[$key] = $this->sanitize_array( $value );
+			} else {
+				$key         = sanitize_text_field( $key );
+				$value       = sanitize_text_field( $value );
+				$array[$key] = $value;
+			}
+		}
+	}
+
+	return $array;
+} 
+
 
 /**
  * Register a new post type for the Instructor's Pages.
@@ -79,6 +118,79 @@ add_action( 'tutor_admin_register', 'ip_tutor_init' );
 
 
 /**
+ * Register metaboxes for the new CPT's admin view.
+ */
+
+function ip_tutor_existing_courses_metabox( $echo = true )
+{
+	ob_start();
+	include IP_TUTOR_LOCATION.'/views/metabox/ip_tutor_existing_courses_metabox.php';
+	$output = ob_get_clean();
+
+	if ($echo){
+		echo $output;
+	} else{
+		return $output;
+	}
+}
+
+function register_metabox_for_instructor_cpt()
+{
+	$cpt = 'ip-tutor';
+	add_meta_box('existing-courses-metabox', __( 'Existing Courses', 'ip-tutor' ), 'ip_tutor_existing_courses_metabox', $cpt);
+}
+
+add_action( 'add_meta_boxes', 'register_metabox_for_instructor_cpt' );
+
+
+/**
+ * @param $post_ID
+ *
+ * Save the inserted metadatas into database.
+ */
+
+add_action( 'save_post_'.'ip-tutor', 'save_instructor_page_meta', 10, 2 );
+
+function save_instructor_page_meta( $post_ID, $post )
+{
+	// Courses linked
+	if ( ! empty($_POST['linked_courses'])){
+		$linked_courses = sanitize_text_field( $_POST['linked_courses'] );
+		$currently_linked = get_post_meta( $post_ID, 'linked_courses' );
+		
+		/* $available_course_ids = get_posts(array( */
+		/* 	'fields'					=> 'ids', */
+		/* 	'post_per_page'		=> -1, */
+		/* 	'post_type'				=> 'courses' */
+		/* )); */
+
+		/* $exists = false; */
+		/* foreach ($available_course_ids as $id) { */
+		/* 	if (intval($linked_courses) === $id) { */
+		/* 		return $exists = true; */
+		/* 	} else { */
+		/* 		continue; */
+		/* 	} */
+		/* } */
+
+		/* if ($exists === true) { */
+		/* 	if ( count($currently_linked) > 0 ) { */
+
+		// TODO: This next two line creates an array inside the array of get_post_meta
+				$currently_linked[0] = $currently_linked[0].','.$linked_courses;	
+				update_post_meta($post_ID, 'linked_courses', $currently_linked);
+
+			/* } else { */
+			/* 	update_post_meta($post_ID, 'linked_courses', $linked_courses); */
+			/* } */
+		/* } else { */
+			/* return; */
+		/* } */
+	}
+}
+
+
+/**
  * @param $menu_order
  * @return $menu_order
  *
@@ -116,11 +228,13 @@ function tutor_submenu_reorder_for_ip( $menu_order )
 
 
 /**
- * Registering a metabox and inserting the view inside Tutor LMS's
- * course builder.
+ * Register a metabox and inserts that metabox into the view of Tutor
+ * LMS's course builder. The metabox will enable the admin to link
+ * existing instructor(s) page into the current course page.
  */
 
-function ip_tutor_meta_box( $echo = true ){
+function ip_tutor_meta_box( $echo = true )
+{
 	ob_start();
 	include IP_TUTOR_LOCATION.'/views/metabox/ip_instructor_metabox.php';
 	$output = ob_get_clean();
@@ -132,8 +246,9 @@ function ip_tutor_meta_box( $echo = true ){
 	}
 }
 
-function register_meta_box_for_tutor(){
-	$cpt = "courses";
+function register_meta_box_for_tutor()
+{
+	$cpt = 'courses';
 	add_meta_box( 'ip-tutor-instructor', __( 'Instructor Page', 'tutor' ), 'ip_tutor_meta_box', $cpt);
 }
 
