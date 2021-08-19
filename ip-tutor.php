@@ -153,39 +153,76 @@ add_action( 'save_post_'.'ip-tutor', 'save_instructor_page_meta', 10, 2 );
 
 function save_instructor_page_meta( $post_ID, $post )
 {
-	// Courses linked
-	if ( ! empty($_POST['linked_courses'])){
+	// Add values into linked_courses metadata.
+	if ( ! empty( $_POST['linked_courses'] ) ){
 		$linked_courses = sanitize_text_field( $_POST['linked_courses'] );
 		$currently_linked = get_post_meta( $post_ID, 'linked_courses' );
 		
-		/* $available_course_ids = get_posts(array( */
-		/* 	'fields'					=> 'ids', */
-		/* 	'post_per_page'		=> -1, */
-		/* 	'post_type'				=> 'courses' */
-		/* )); */
+		$available_course_ids = get_posts(array(
+			'fields'					=> 'ids',
+			'post_per_page'		=> -1,
+			'post_type'				=> 'courses'
+		));
 
-		/* $exists = false; */
-		/* foreach ($available_course_ids as $id) { */
-		/* 	if (intval($linked_courses) === $id) { */
-		/* 		return $exists = true; */
-		/* 	} else { */
-		/* 		continue; */
-		/* 	} */
-		/* } */
-
-		/* if ($exists === true) { */
-		/* 	if ( count($currently_linked) > 0 ) { */
-
-		// TODO: This next two line creates an array inside the array of get_post_meta
+		if ( in_array( $linked_courses, $available_course_ids ) ) {
+			if ( count($currently_linked) > 0 ) {
 				$currently_linked[0] = $currently_linked[0].','.$linked_courses;	
-				update_post_meta($post_ID, 'linked_courses', $currently_linked);
+				update_post_meta($post_ID, 'linked_courses', $currently_linked[0]);
 
-			/* } else { */
-			/* 	update_post_meta($post_ID, 'linked_courses', $linked_courses); */
-			/* } */
-		/* } else { */
-			/* return; */
-		/* } */
+			} else {
+				update_post_meta($post_ID, 'linked_courses', $linked_courses);
+			}
+		} else {
+			return;
+		}
+	}
+
+	// Remove values from linked_courses metadata.
+	if ( ! empty( $_POST['deassign_courses'] ) ){
+		$deassign_courses = sanitize_text_field( $_POST['deassign_courses'] );
+		$currently_linked = get_post_meta( $post_ID, 'linked_courses' );
+
+		$available_course_ids = get_posts(array(
+			'fields'					=> 'ids',
+			'post_per_page'		=> -1,
+			'post_type'				=> 'courses'
+		));
+
+		if ( in_array( $deassign_courses, $available_course_ids ) ) {
+			if ( count( $currently_linked ) > 0 ) {
+				// TODO: What about singular values?
+				if ( substr_count( $deassign_courses[0],"," !== 0 )) {
+					$deassign_courses = explode( ",", $deassign_courses[0], 50 );
+				} 
+
+				if ( substr_count( $currently_linked[0],"," !== 0 )) {
+					$currently_linked = explode( ",", $currently_linked[0], 50 );
+				} 
+
+				if ( count( $deassign_courses ) > 1 || count( $currently_linked ) > 1 ) {
+					foreach ( $deassign_courses as $id ) {
+						if ( in_array( $id, $currently_linked ) ) {
+							$key = array_search( $id, $currently_linked );
+							unset( $currently_linked[$key] );
+							$currently_linked = array_values( $currently_linked );
+						}
+					}
+
+					$transitional_arr = $currently_linked;
+
+					$currently_linked = [];
+					
+					$currently_linked[0] = implode( ",", $transitional_arr );
+				}
+
+				update_post_meta($post_ID, 'linked_courses', $currently_linked[0]);
+			} else {
+				update_post_meta($post_ID, 'linked_courses', $deassign_courses);
+			}
+		} else {
+			return;
+		}
+		
 	}
 }
 
