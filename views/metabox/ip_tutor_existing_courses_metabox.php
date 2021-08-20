@@ -2,8 +2,10 @@
 $ip_id = get_the_ID();
 
 $linked_courses = get_post_meta($ip_id, 'linked_courses');
-if ( substr_count( $linked_courses[0],"," !== 0 )) {
-	$linked_courses = explode( ",", $linked_courses[0], 50 );
+if ( count( $linked_courses ) !== 0 ) {
+	if ( substr_count( $linked_courses[0],"," !== 0 )) {
+		$linked_courses = explode( ",", $linked_courses[0], 50 );
+	}
 }
 
 $available_course_ids = get_posts(array(
@@ -47,8 +49,12 @@ foreach ($available_course_ids as $id) {
 	<div class="tutor-option-field tutor-option-tooltip">
 		<ul>
 			<?php
-			foreach ($linked_courses as $id) {
-				echo '<li><b>('.$id.')</b>  <i>'.get_the_title( $id ).'</i></li>';
+			if ( count( $linked_courses ) === 0 ) {
+				_e('None.', 'ip-tutor');
+			} else {
+				foreach ($linked_courses as $id) {
+					echo '<li><b>('.$id.')</b>  <i>'.get_the_title( $id ).'</i></li>';
+				}
 			}
 			?>
 		</ul>
@@ -72,9 +78,6 @@ foreach ($available_course_ids as $id) {
 			<?php r($linked_courses); ?>
 			<?php 
 				r($available_course_ids);
-				/* array_push($linked_courses, 108); */
-				/* $linked_courses[0] = $linked_courses[0].',108'; */
-				/* r($linked_courses); */
 			?>
 		</p>
   </div>
