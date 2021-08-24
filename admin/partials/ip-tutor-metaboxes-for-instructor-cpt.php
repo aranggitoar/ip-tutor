@@ -1,4 +1,6 @@
 <?php
+include_once IP_TUTOR_LOCATION . 'includes/ip-tutor-general-functions.php';
+
 $ip_id = get_the_ID();
 
 $linked_courses = get_post_meta($ip_id, 'linked_courses');

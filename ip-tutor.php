@@ -1,367 +1,101 @@
 <?php
-/*
-Plugin Name: Instructor Page for Tutor LMS
-Plugin URI: htips://alkitabkita.info
-Description: Add static instructor pages into your Tutor LMS, perfect for e-learning sites with instructor accounts that are not managed by its own instructor.
-Version: 0.1.1
-License: GPL-3.0
-Author: Aranggi Toar
-Author URI: htips://aranggitoar.net
-Text domain: instructor-page-for-tutor-lms
 
-Static instructor pages extension for Tutor LMS, a plugin for Wordpress.
-Copyright (C) 2021 Aranggi Josef Toar
+/**
+ * @link						https://aranggitoar.net/ip-tutor
+ * @since						0.1.0
+ * @package					IP_Tutor
+ *
+ * Plugin Name:			Instructor Page for Tutor LMS
+ * Plugin URI:			https://aranggitoar.net/ip-tutor
+ * Description:			Static instructor pages for your Tutor LMS.
+ * Version:					0.3.0
+ * License:					GPL-3.0
+ * Author:					Aranggi Toar
+ * Author URI:			https://aranggitoar.net
+ * Text domain:			instructor-page-for-tutor-lms
+ * Domain Path:			/languages
+ * 
+ * Static instructor pages extension for Tutor LMS, a plugin for Wordpress.
+ * Copyright (C) 2021 Aranggi Josef Toar
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation version 3 of the License.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation version 3 of the License.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
+// Exit when file is called directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Define variable for path to this plugin file.
-define( 'IP_TUTOR_LOCATION', dirname( __FILE__ ) );
-define( 'IP_TUTOR_LOCATION_URL', plugins_url( '', __FILE__ ) );
-
-// For debugging.
-function r($var)
-{
-	echo '<pre>';
-	print_r($var);
-	echo '</pre>';
-}
-
-function d($var)
-{
-	echo '<pre>';
-	var_dump($var);
-	echo '</pre>';
-}
-
 
 /**
- * Array sanitization, taken from Tutor LMS.
- * Reference: ./tutor/classes/Utils.php:1656-1672.
+ * Define the current plugin version.
+ * Semantic Versioning reference - https://semver.org.
  */
-
-function sanitize_array( $input = array() ) {
-	$array = array();
-  
-	if ( is_array( $input ) && count( $input ) ) {
-		foreach ( $input as $key => $value ) {
-			if ( is_array( $value )) {
-				$array[$key] = $this->sanitize_array( $value );
-			} else {
-				$key         = sanitize_text_field( $key );
-				$value       = sanitize_text_field( $value );
-				$array[$key] = $value;
-			}
-		}
-	}
-
-	return $array;
-} 
+define( 'IP_TUTOR_VERSION', '0.3.0' );
 
 
 /**
- * Register a new post type for the Instructor's Pages.
- */
-
-function register_ip_tutor_post_types() {
-	$ip_post_type = "ip-tutor";
-
-	$labels = array(
-		'name' => 'Instructors (Instructor Page for Tutor LMS)',
-		'singular_name' => 'Instructor',
-	);
-
-	$args = array(
-		'labels' => $labels,
-		'description' => __( 'Instructor pages for Tutor LMS.', 'tutor' ), 
-		'hierarchical' => true,
-		'public' => true,
-		'has_archive' => true,
-		'show_ui' => true,
-		'show_in_menu' => false,
-		'show_in_rest' => true,
-		'supports' => array('title', 'thumbnail'),
-		'rewrite' => array('slug' => 'instructor'),
-	);
-
-	register_post_type($ip_post_type, $args);
-}
-
-add_action('init', 'register_ip_tutor_post_types');
-
-
-/**
- * Initialize the new post type as a submenu of Tutor LMS.
- * The action hook is from tutor/classes/Admin.php.
- */
-
-function ip_tutor_init()
-{
-	add_submenu_page('tutor', __('Instructors', 'tutor'), __('Instructors', 'tutor'), 'manage_tutor', 'edit.php?post_type=ip-tutor', null);
-}
-
-add_action( 'tutor_admin_register', 'ip_tutor_init' );
-
-
-/**
- * Register metaboxes for the new CPT's admin view.
- */
-
-function ip_tutor_existing_courses_metabox( $echo = true )
-{
-	ob_start();
-	include IP_TUTOR_LOCATION.'/views/metabox/ip_tutor_existing_courses_metabox.php';
-	$output = ob_get_clean();
-
-	if ($echo){
-		echo $output;
-	} else{
-		return $output;
-	}
-}
-
-function register_metabox_for_instructor_cpt()
-{
-	$cpt = 'ip-tutor';
-	add_meta_box('existing-courses-metabox', __( 'Existing Courses', 'ip-tutor' ), 'ip_tutor_existing_courses_metabox', $cpt);
-}
-
-add_action( 'add_meta_boxes', 'register_metabox_for_instructor_cpt' );
-
-
-/**
- * @param $post_ID
+ * Define the variables for plugin path.
  *
- * Save the inserted metadatas into database.
+ * Both plugin_dir_path and plugin_dir_url gets the filesystem and
+ * URL directory path with trailing slash added for the __FILE__.
  */
+define( 'IP_TUTOR_LOCATION', plugin_dir_path( __FILE__ ) );
+define( 'IP_TUTOR_LOCATION_URL', plugin_dir_url( __FILE__ ) );
 
-add_action( 'save_post_'.'ip-tutor', 'save_instructor_page_meta', 10, 2 );
 
-// Check if ID's from input exists.
-function check_page_id_existence ( $str_or_arr, $checker_arr, $rev_return_val = false )
+/**
+ * Define IP Tutor activation function.
+ */
+function activate_ip_tutor()
 {
-	if ( ! is_array( $str_or_arr ) ) {
-		if ( in_array( $str_or_arr, $checker_arr ) ) {
-			if ( $rev_return_val ) {
-				return false;
-			} else {
-				return true;
-			}
-		} else {
-			if ( $rev_return_val ) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-	} else {
-		$i = 0;
-		foreach ( $str_or_arr as $id ) {
-			if ( in_array( $id, $checker_arr ) ) {
-				$i++;
-			} else {
-				continue;
-			}
-		}
-		if ( count( $str_or_arr ) === $i ) {
-			if ( $rev_return_val ) {
-				return false;
-			} else {
-				return true;
-			}
-		} else {
-			if ( $rev_return_val ) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-	}
-}
-
-function remove_items_from_array ( $item, $arr )
-{
-	$key = array_search( $item, $arr );
-	unset( $arr[$key] );
-	return $arr;
-}
-
-function save_instructor_page_meta( $post_ID, $post )
-{
-	// Add values into linked_courses metadata.
-	if ( ! empty( $_POST['linked_courses'] ) ){
-		$linked_courses = sanitize_text_field( $_POST['linked_courses'] );
-		/* $currently_linked = get_post_meta( $post_ID, 'linked_courses' ); */
-		/* $available_course_ids = get_posts(array( */
-		/* 	'fields'					=> 'ids', */
-		/* 	'post_per_page'		=> -1, */
-		/* 	'post_type'				=> 'courses' */
-		/* )); */
-
-		/* if ( substr_count( $linked_courses[0],"," !== 0 ) ) { */
-		/* 	$linked_courses = explode( ",", $linked_courses[0], 50 ); */
-		/* } */ 
-
-		/* if ( check_page_id_existence( $linked_courses, $available_course_ids ) && check_page_id_existence( $linked_courses, explode( ",", $currently_linked[0], 50 ), true )) { */
-		/* 	if ( count($currently_linked) > 0 ) { */
-		/* 		$currently_linked = explode( ",", $currently_linked[0], 50 ); */
-
-		/* 		if ( is_array( $linked_courses ) ) { */
-		/* 			foreach ( $linked_courses as $id ) { */
-		/* 				if ( ! in_array( $id, $currently_linked ) ) { */
-		/* 					array_push( $currently_linked, $id ); */
-		/* 				} */
-		/* 			} */
-		/* 		} else { */
-		/* 			array_push( $currently_linked, $linked_courses ); */
-		/* 		} */
-
-		/* 		$transitional_arr = $currently_linked; */
-		/* 		$currently_linked = []; */
-		/* 		$currently_linked[0] = implode( ",", $transitional_arr ); */
-
-		/* 		update_post_meta($post_ID, 'linked_courses', $currently_linked[0]); */
-		/* 	} else { */
-				update_post_meta($post_ID, 'linked_courses', $linked_courses);
-			/* } */
-		/* } else { */
-			/* return; */
-		/* } */
-	}
-
-	// Remove values from linked_courses metadata.
-	if ( ! empty( $_POST['deassign_courses'] ) ){
-		$deassign_courses = sanitize_text_field( $_POST['deassign_courses'] );
-		$currently_linked = get_post_meta( $post_ID, 'linked_courses' );
-		$available_course_ids = get_posts(array(
-			'fields'					=> 'ids',
-			'post_per_page'		=> -1,
-			'post_type'				=> 'courses'
-		));
-
-		if ( substr_count( $deassign_courses[0], "," ) > 0 ) {
-			$deassign_courses = explode( ",", $deassign_courses[0], 50 );
-		} 
-
-		if ( ! check_page_id_existence( $deassign_courses, $available_course_ids ) ) {
-			if ( is_array( $deassign_courses ) ) {
-				foreach ( $deassign_courses as $id ) {
-					if ( in_array( $id, $available_course_ids ) ) {
-						$key = array_search( $id, $available_course_ids );
-						unset( $deassign_courses[$key] );
-					}
-				}
-			} else {
-				unset( $deassign_courses );
-			}
-		}
-
-		if ( count( $currently_linked ) > 0 && substr_count( $currently_linked[0], "," ) > 0 ) {
-			$currently_linked = explode( ",", $currently_linked[0], 50 );
-
-				foreach ( $deassign_courses as $id ) {
-					if ( in_array( $id, $currently_linked ) ) {
-						$key = array_search( $id, $currently_linked );
-						unset( $currently_linked[$key] );
-						/* $currently_linked = remove_items_from_array( $id, $currently_linked ); */
-					}
-				}
-
-			if ( count( $currently_linked ) === 0 ) {
-				delete_post_meta($post_ID, 'linked_courses');
-			} else {
-				$transitional_arr = $currently_linked;
-				$currently_linked = [];
-				$currently_linked[0] = implode( ",", $transitional_arr );
-
-				update_post_meta($post_ID, 'linked_courses', $currently_linked[0]);
-			}
-		} else if ( ! isset( $deassign_courses ) ) {
-			return;
-		} else {
-			delete_post_meta($post_ID, 'linked_courses');
-		}
-	}
+	require_once IP_TUTOR_LOCATION . 'includes/class-ip-tutor-activator.php';
+	IP_Tutor_Activator::activate();
 }
 
 
 /**
- * @param $menu_order
- * @return $menu_order
+ * Define IP Tutor deactivation function.
+ */
+function deactivate_ip_tutor()
+{
+	require_once IP_TUTOR_LOCATION . 'includes/class-ip-tutor-deactivator.php';
+	IP_Tutor_Deactivator::deactivate();
+}
+
+register_activation_hook( __FILE__, 'activate_ip_tutor' );
+register_deactivation_hook( __FILE__, 'deactivate_ip_tutor' );
+
+
+/**
+ * Core IP Tutor class for defining internationalization,
+ * admin-specific hooks, and public-facing site hooks.
+ */
+require IP_TUTOR_LOCATION . 'includes/class-ip-tutor.php';
+
+
+/**
+ * Define IP Tutor execution function,
  *
- * Rearrange the order of Tutor LMS's submenus so that SIP for Tutor
- * LMS will be displayed after the submenu 'Tags' and before the
- * submenu 'Students'.
+ * @since 0.3.0
  */
-
-add_filter( 'custom_menu_order', '__return_true' );
-add_filter( 'menu_order', 'tutor_submenu_reorder_for_ip' );
-
-function tutor_submenu_reorder_for_ip( $menu_order )
+function run_ip_tutor()
 {
-	global $submenu;
-
-	// For debugging.
-	//echo '<pre>'.print_r($submenu['tutor'],true).'</pre>';
-	$tutor_arr = array();
-	$tutor_arr[] = $submenu['tutor'][0];
-	$tutor_arr[] = $submenu['tutor'][1];
-	$tutor_arr[] = $submenu['tutor'][2];
-	$tutor_arr[] = $submenu['tutor'][8];
-	$tutor_arr[] = $submenu['tutor'][3];
-	$tutor_arr[] = $submenu['tutor'][4];
-	$tutor_arr[] = $submenu['tutor'][5];
-	$tutor_arr[] = $submenu['tutor'][6];
-	$tutor_arr[] = $submenu['tutor'][7];
-	$tutor_arr[] = $submenu['tutor'][9];
-	$tutor_arr[] = $submenu['tutor'][10];
-	$tutor_arr[] = $submenu['tutor'][11];
-	$submenu['tutor'] = $tutor_arr;
-
-	return $menu_order;
+	$plugin = new IP_Tutor();
+	$plugin->run();
 }
 
-
-/**
- * Register a metabox and inserts that metabox into the view of Tutor
- * LMS's course builder. The metabox will enable the admin to link
- * existing instructor(s) page into the current course page.
- */
-
-function ip_tutor_meta_box( $echo = true )
-{
-	ob_start();
-	include IP_TUTOR_LOCATION.'/views/metabox/ip_instructor_metabox.php';
-	$output = ob_get_clean();
-
-	if ($echo){
-		echo $output;
-	} else{
-		return $output;
-	}
-}
-
-function register_meta_box_for_tutor()
-{
-	$cpt = 'courses';
-	add_meta_box( 'ip-tutor-instructor', __( 'Instructor Page', 'tutor' ), 'ip_tutor_meta_box', $cpt);
-}
-
-add_action( 'add_meta_boxes', 'register_meta_box_for_tutor' );
-add_action( 'tutor_course_builder_metabox_before', 'ip_tutor_meta_box' );
+run_ip_tutor();
 
 ?>
