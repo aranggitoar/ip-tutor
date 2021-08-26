@@ -40,29 +40,29 @@ class IP_Tutor {
 
 	/**
 	 * @since    	0.1.0
-	 * @access   	private
+	 * @access   	protected
 	 * @var      	string    $main_cpt_name
 	 *						The main CPT name of this plugin.
 	 */
-	private $main_cpt_name;
+	protected $main_cpt_name;
 
 
 	/**
 	 * @since    	0.1.0
-	 * @access   	private
+	 * @access   	protected
 	 * @var      	string    $main_cpt_slug
 	 *						The main slug name of this plugin.
 	 */
-	private $main_cpt_slug;
+	protected $main_cpt_slug;
 
 
 	/**
 	 * @since    	0.3.0
-	 * @access   	private
+	 * @access   	protected
 	 * @var      	string			$tutor_courses_cpt_name
 	 *						The course CPT name of Tutor LMS.
 	 */
-	private $tutor_courses_cpt_name;
+	protected $tutor_courses_cpt_name;
 
 	/**
 	 * Define the core functionality of IP Tutor.
@@ -220,7 +220,7 @@ class IP_Tutor {
 		);
 
 		$this->loader->add_action(
-			'save_post_',
+			'save_post_' . $this->get_main_cpt_name(),
 			$plugin_admin,
 			'save_instructor_page_meta'
 		);

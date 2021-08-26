@@ -19,35 +19,97 @@ class IP_Tutor_Public
 	 *
 	 * @since			0.3.0
 	 * @access		private
-	 * @var				string		$ip_tutor
-	 *						The ID of IP Tutor.
+	 * @var				string			$plugin_name
+	 *						The name of this plugin.
 	 */
-	private $ip_tutor;
+	private $plugin_name;
 
 	/**
-	 * The version of IP Tutor.
-	 *
 	 * @since    	0.3.0
 	 * @access   	private
-	 * @var      	string		$version
-	 *						The current version of IP Tutor.
+	 * @var      	string			$version
+	 *						The current version of this plugin.
 	 */
 	private $version;
+
+
+	/**
+	 * @since    	0.2.0
+	 * @access   	private
+	 * @var      	string			$main_cpt_name
+	 *						The main CPT name of this plugin.
+	 */
+	private $main_cpt_name;
+
+
+	/**
+	 * @since    	0.2.0
+	 * @access   	private
+	 * @var      	string			$main_cpt_slug
+	 *						The main slug name of this plugin.
+	 */
+	private $main_cpt_slug;
+
+
+	/**
+	 * @since    	0.3.0
+	 * @access   	private
+	 * @var      	string			$tutor_courses_cpt_name
+	 *						The course CPT name of Tutor LMS.
+	 */
+	private $tutor_courses_cpt_name;
 
 	/**
 	 * Initialize the class and set its properties.
 	 *
 	 * @since			0.3.0
-	 * @param     string		$ip_tutor
-	 *						The name of IP Tutor.
-	 * @param     string    $version
-	 *						The version of IP Tutor.
+	 * @param     string			$plugin_name
+	 *						The name of this plugin.
+	 * @param     string			$version
+	 *						The version of this plugin.
+	 * @param     string			$main_cpt_name
+	 *						The main CPT name of this plugin.
+	 * @param     string			$main_cpt_slug
+	 *						The main slug name of this plugin.
+	 * @param     string			$tutor_courses_cpt_name
+	 *						The course CPT name of Tutor LMS.
 	 */
-	public function __construct( $ip_tutor, $version ) {
+	public function __construct( $plugin_name, $version, $main_cpt_name,
+		$main_cpt_slug, $tutor_courses_cpt_name )
+	{
 
-		$this->ip_tutor = $ip_tutor;
+		$this->plugin_name = $plugin_name;
 		$this->version = $version;
+		$this->main_cpt_name = $main_cpt_name;
+		$this->main_cpt_slug = $main_cpt_slug;
+		$this->tutor_courses_cpt_name = $tutor_courses_cpt_name;
 
+	}
+
+
+	/**
+	 * Retrieve the main CPT name this plugin.
+	 *
+	 * @since     0.3.0
+	 * @return    string
+	 *						The main CPT name of this plugin.
+	 */
+	public function get_main_cpt_name()
+	{
+		return $this->main_cpt_name;
+	}
+
+
+	/**
+	 * Retrieve the main CPT slug of this plugin.
+	 *
+	 * @since     0.3.0
+	 * @return    string
+	 *						The main CPT slug of this plugin.
+	 */
+	public function get_main_cpt_slug()
+	{
+		return $this->main_cpt_slug;
 	}
 
 	/**
@@ -70,7 +132,7 @@ class IP_Tutor_Public
 		 */
 
 		wp_enqueue_style(
-			$this->ip_tutor,
+			$this->plugin_name,
 			plugin_dir_url( __FILE__ ) . 'css/plugin-name-public.css',
 			array(),
 			$this->version,
@@ -84,7 +146,8 @@ class IP_Tutor_Public
 	 *
 	 * @since    0.3.0
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts()
+	{
 
 		/**
 		 * This function is provided for demonstration purposes only.
@@ -99,13 +162,94 @@ class IP_Tutor_Public
 		 */
 
 		wp_enqueue_script(
-			$this->ip_tutor,
+			$this->plugin_name,
 			plugin_dir_url( __FILE__ ) . 'js/plugin-name-public.js',
 			array( 'jquery' ),
 			$this->version,
 			false
 		);
 
+	}
+
+
+	/**
+	 * TODO FOR ALL THE FOLLOWING FUNCTIONS: Integrate with the
+	 * default instructor assignment logic and database management.
+	 * Tutor has a specific table created for assigned instructors and
+	 * their basic informations.
+	 */
+
+
+	/**
+	 * Retrieve the requested Tutor LMS course instructor short biography.
+	 *
+	 * @since     0.3.0
+	 * @param			int					$post_ID
+	 *						ID of the current post.
+	 * @return    string
+	 *						The requested Tutor LMS course instructor short
+	 *						biography.
+	 */
+	public static function get_current_course_instructor_bio( $post_ID )
+	{
+		return get_post_meta( $post_ID, 'short_biography' )[0];
+	}
+
+
+	/**
+	 * Retrieve the requested Tutor LMS course instructor job title.
+	 *
+	 * @since     0.3.0
+	 * @param			int					$post_ID
+	 *						ID of the current post.
+	 * @return    string
+	 *						The requested Tutor LMS course instructor job title.
+	 */
+	public static function get_current_course_instructor_job_title(
+		$post_ID )
+	{
+		return get_post_meta( $post_ID, 'job_title' )[0];
+	}
+
+
+	/**
+	 * TODO: Check if there is more than one instructor assigned.
+	 *
+	 * Retrieve the requested Tutor LMS course instructor post id.
+	 *
+	 * @since     0.3.0
+	 * @param			int					$post_ID
+	 *						ID of the current post.
+	 * @return    string
+	 *						The requested Tutor LMS course instructor post id.
+	 */
+	public static function get_current_course_instructor_post_id(
+		$post_ID )
+	{
+		return get_post_meta( $post_ID, 'assigned_instructors' )[0];
+	}
+
+
+	/**
+	 * TODO: Check if the current theme doesn't have the required
+	 * template and copy a modified one.
+	 *
+	 * Retrieve the requested Tutor LMS course instructor name.
+	 *
+	 * @since     0.3.0
+	 * @param			int					$post_ID
+	 *						ID of the current post.
+	 * @return    string
+	 *						The requested Tutor LMS course instructor name.
+	 */
+	public static function get_current_course_instructor_name(
+		$post_ID )
+	{
+		$ip_page_id =
+			IP_Tutor_Public::get_current_course_instructor_post_id(
+				$post_ID );
+
+		return get_the_title( $ip_page_id );
 	}
 
 }

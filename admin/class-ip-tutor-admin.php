@@ -247,11 +247,35 @@ class IP_Tutor_Admin
 	 * @return		string			$output
 	 *						The contents of the included file.
 	 */
-	public function load_ip_tutor_metabox_view( $echo = true )
+	public function load_ip_tutor_ci_metabox_view( $echo = true )
 	{
 		ob_start();
 		include IP_TUTOR_LOCATION
-			. 'admin/partials/ip-tutor-metaboxes-for-instructor-cpt.php';
+			. 'admin/partials/ip-tutor-common-information-metabox.php';
+		$output = ob_get_clean();
+
+		if ($echo){
+			echo $output;
+		} else{
+			return $output;
+		}
+	}
+
+
+	/**
+	 * Load metaboxes for IP Tutor's main CPT admin view.
+	 *
+	 * @since			0.2.0
+	 * @param			boolean			$echo
+	 *						To echo the $output or return the $output
+	 * @return		string			$output
+	 *						The contents of the included file.
+	 */
+	public function load_ip_tutor_ca_metabox_view( $echo = true )
+	{
+		ob_start();
+		include IP_TUTOR_LOCATION
+			. 'admin/partials/ip-tutor-course-assignment-metabox.php';
 		$output = ob_get_clean();
 
 		if ($echo){
@@ -268,9 +292,16 @@ class IP_Tutor_Admin
 	public function register_metabox_for_tutor_submenu()
 	{
 		add_meta_box(
-			'existing-courses-metabox',
-			__( 'Existing Courses', 'ip-tutor' ),
-			array( $this, 'load_ip_tutor_metabox_view' ),
+			'common-info-metabox',
+			__( 'Common Information', 'ip-tutor' ),
+			array( $this, 'load_ip_tutor_ci_metabox_view' ),
+			$this->main_cpt_name
+		);
+
+		add_meta_box(
+			'courses-assignment-metabox',
+			__( 'Course Assignment', 'ip-tutor' ),
+			array( $this, 'load_ip_tutor_ca_metabox_view' ),
 			$this->main_cpt_name
 		);
 	}
@@ -279,105 +310,119 @@ class IP_Tutor_Admin
 	/**
 	 * Save the inserted metadatas into database.
 	 *
-	 * @param			string			$post_ID
-	 *						The string of post ID's separated by commas.
+	 * @param			int					$post_ID
+	 *						ID of the current post.
 	 */
-	public function save_instructor_page_meta( $post_ID, $post )
+	public function save_instructor_page_meta( $post_ID )
 	{
 		include_once "includes/ip-tutor-general-functions.php";
 
-		// Add values into linked_courses metadata.
-		if ( ! empty( $_POST['linked_courses'] ) ){
-			$linked_courses = sanitize_text_field( $_POST['linked_courses'] );
-			/* $currently_linked = get_post_meta( $post_ID, 'linked_courses' ); */
+		if ( ! empty( $_POST['job_title'] ) ) {
+			$job_title = sanitize_text_field( $POST['job_title'] );
+			update_post_meta( $post_ID, 'job_title', $job_title );
+		}
+
+		if ( ! empty( $_POST['short_biography'] ) ) {
+			$bio = sanitize_text_field( $POST['short_biography'] );
+			update_post_meta( $post_ID, 'short_biography', $bio );
+		}
+
+		// Add values into assigned_courses metadata.
+		if ( ! empty( $_POST['assign_courses'] ) ) {
+			$courses_to_assign = sanitize_text_field( $_POST['assign_courses'] );
+			/* $currently_assigned = get_post_meta( $post_ID, 'assigned_courses' ); */
 			/* $available_course_ids = get_posts(array( */
 			/* 	'fields'					=> 'ids', */
 			/* 	'post_per_page'		=> -1, */
 			/* 	'post_type'				=> 'courses' */
 			/* )); */
 
-			/* if ( substr_count( $linked_courses[0],"," !== 0 ) ) { */
-			/* 	$linked_courses = explode( ",", $linked_courses[0], 50 ); */
-			/* } */ 
+			$courses_to_update = explode( ",", $courses_to_assign, 50 );
+			$str_post_ID = $post_ID;
+			settype( $str_post_ID, "string" );
+			foreach ( $courses_to_update as $id) {
+				settype( $id, "string" );
+				update_post_meta( $id, 'assigned_instructors', $post_ID );
+			}
 
-			/* if ( check_page_id_existence( $linked_courses, $available_course_ids ) && check_page_id_existence( $linked_courses, explode( ",", $currently_linked[0], 50 ), true )) { */
-			/* 	if ( count($currently_linked) > 0 ) { */
-			/* 		$currently_linked = explode( ",", $currently_linked[0], 50 ); */
+			/* if ( check_page_id_existence( $courses_to_assign, $available_course_ids ) && check_page_id_existence( $courses_to_assign, explode( ",", $currently_assigned[0], 50 ), true )) { */
+			/* 	if ( count($currently_assigned) > 0 ) { */
+			/* 		$currently_assigned = explode( ",", $currently_assigned[0], 50 ); */
 
-			/* 		if ( is_array( $linked_courses ) ) { */
-			/* 			foreach ( $linked_courses as $id ) { */
-			/* 				if ( ! in_array( $id, $currently_linked ) ) { */
-			/* 					array_push( $currently_linked, $id ); */
+			/* 		if ( is_array( $courses_to_assign ) ) { */
+			/* 			foreach ( $courses_to_assign as $id ) { */
+			/* 				if ( ! in_array( $id, $currently_assigned ) ) { */
+			/* 					array_push( $currently_assigned, $id ); */
 			/* 				} */
 			/* 			} */
 			/* 		} else { */
-			/* 			array_push( $currently_linked, $linked_courses ); */
+			/* 			array_push( $currently_assigned, $courses_to_assign ); */
 			/* 		} */
 
-			/* 		$transitional_arr = $currently_linked; */
-			/* 		$currently_linked = []; */
-			/* 		$currently_linked[0] = implode( ",", $transitional_arr ); */
+			/* 		$transitional_arr = $currently_assigned; */
+			/* 		$currently_assigned = []; */
+			/* 		$currently_assigned[0] = implode( ",", $transitional_arr ); */
 
-			/* 		update_post_meta($post_ID, 'linked_courses', $currently_linked[0]); */
+			/* 		update_post_meta($post_ID, 'assigned_courses', $currently_assigned[0]); */
 			/* 	} else { */
-					update_post_meta($post_ID, 'linked_courses', $linked_courses);
+					update_post_meta( $post_ID, 'assigned_courses', $courses_to_assign );
 				/* } */
 			/* } else { */
 				/* return; */
 			/* } */
 		}
 
-		// Remove values from linked_courses metadata.
+		// Remove values from assigned_courses metadata.
 		if ( ! empty( $_POST['deassign_courses'] ) ){
-			$deassign_courses = sanitize_text_field( $_POST['deassign_courses'] );
-			$currently_linked = get_post_meta( $post_ID, 'linked_courses' );
+			$courses_to_deassign = sanitize_text_field( $_POST['deassign_courses'] );
+			$currently_assigned = get_post_meta( $post_ID, 'assigned_courses' );
 			$available_course_ids = get_posts(array(
 				'fields'					=> 'ids',
 				'post_per_page'		=> -1,
 				'post_type'				=> 'courses'
 			));
 
-			if ( substr_count( $deassign_courses[0], "," ) > 0 ) {
-				$deassign_courses = explode( ",", $deassign_courses[0], 50 );
+			if ( substr_count( $courses_to_deassign[0], "," ) > 0 ) {
+				$courses_to_deassign = explode( ",", $courses_to_deassign[0], 50 );
 			} 
 
-			if ( ! check_page_id_existence( $deassign_courses, $available_course_ids ) ) {
-				if ( is_array( $deassign_courses ) ) {
-					foreach ( $deassign_courses as $id ) {
+			if ( ! check_page_id_existence( $courses_to_deassign, $available_course_ids ) ) {
+				if ( is_array( $courses_to_deassign ) ) {
+					foreach ( $courses_to_deassign as $id ) {
 						if ( in_array( $id, $available_course_ids ) ) {
 							$key = array_search( $id, $available_course_ids );
-							unset( $deassign_courses[$key] );
+							unset( $courses_to_deassign[$key] );
 						}
 					}
 				} else {
-					unset( $deassign_courses );
+					unset( $courses_to_deassign );
 				}
 			}
 
-			if ( count( $currently_linked ) > 0 && substr_count( $currently_linked[0], "," ) > 0 ) {
-				$currently_linked = explode( ",", $currently_linked[0], 50 );
+			if ( count( $currently_assigned ) > 0 && substr_count( $currently_assigned[0], "," ) > 0 ) {
+				$currently_assigned = explode( ",", $currently_assigned[0], 50 );
 
-					foreach ( $deassign_courses as $id ) {
-						if ( in_array( $id, $currently_linked ) ) {
-							$key = array_search( $id, $currently_linked );
-							unset( $currently_linked[$key] );
-							/* $currently_linked = remove_items_from_array( $id, $currently_linked ); */
+					foreach ( $courses_to_deassign as $id ) {
+						if ( in_array( $id, $currently_assigned ) ) {
+							$key = array_search( $id, $currently_assigned );
+							unset( $currently_assigned[$key] );
+							/* $currently_assigned = remove_items_from_array( $id, $currently_assigned ); */
 						}
 					}
 
-				if ( count( $currently_linked ) === 0 ) {
-					delete_post_meta($post_ID, 'linked_courses');
+				if ( count( $currently_assigned ) === 0 ) {
+					delete_post_meta( $post_ID, 'assigned_courses' );
 				} else {
-					$transitional_arr = $currently_linked;
-					$currently_linked = [];
-					$currently_linked[0] = implode( ",", $transitional_arr );
+					$transitional_arr = $currently_assigned;
+					$currently_assigned = [];
+					$currently_assigned[0] = implode( ",", $transitional_arr );
 
-					update_post_meta($post_ID, 'linked_courses', $currently_linked[0]);
+					update_post_meta( $post_ID, 'assigned_courses', $currently_assigned[0] );
 				}
-			} else if ( ! isset( $deassign_courses ) ) {
+			} else if ( ! isset( $courses_to_deassign ) ) {
 				return;
 			} else {
-				delete_post_meta($post_ID, 'linked_courses');
+				delete_post_meta( $post_ID, 'assigned_courses' );
 			}
 		}
 	}
@@ -459,7 +504,6 @@ class IP_Tutor_Admin
 			$this->tutor_courses_cpt_name
 		);
 	}
-
 
 }
 
