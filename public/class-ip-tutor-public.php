@@ -133,7 +133,7 @@ class IP_Tutor_Public
 
 		wp_enqueue_style(
 			$this->plugin_name,
-			plugin_dir_url( __FILE__ ) . 'css/plugin-name-public.css',
+			IP_TUTOR_PUBLIC_LOCATION_URL . 'css/ip-tutor-public.css',
 			array(),
 			$this->version,
 			'all'
@@ -163,7 +163,7 @@ class IP_Tutor_Public
 
 		wp_enqueue_script(
 			$this->plugin_name,
-			plugin_dir_url( __FILE__ ) . 'js/plugin-name-public.js',
+			IP_TUTOR_PUBLIC_LOCATION_URL . 'js/ip-tutor-public.js',
 			array( 'jquery' ),
 			$this->version,
 			false

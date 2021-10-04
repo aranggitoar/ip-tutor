@@ -134,7 +134,7 @@ class IP_Tutor_Admin
 
 		wp_enqueue_style(
 			$this->plugin_name,
-			IP_TUTOR_LOCATION_URL . 'css/plugin-name-admin.css',
+			IP_TUTOR_ADMIN_LOCATION_URL . 'css/ip-tutor-admin.css',
 			array(),
 			$this->version,
 			'all'
@@ -165,7 +165,7 @@ class IP_Tutor_Admin
 
 		wp_enqueue_script(
 			$this->plugin_name,
-			IP_TUTOR_LOCATION_URL . 'js/plugin-name-admin.js',
+			IP_TUTOR_ADMIN_LOCATION_URL . 'js/ip-tutor-admin.js',
 			array( 'jquery' ),
 			$this->version,
 			false
@@ -330,46 +330,22 @@ class IP_Tutor_Admin
 		// Add values into assigned_courses metadata.
 		if ( ! empty( $_POST['assign_courses'] ) ) {
 			$courses_to_assign = sanitize_text_field( $_POST['assign_courses'] );
-			/* $currently_assigned = get_post_meta( $post_ID, 'assigned_courses' ); */
-			/* $available_course_ids = get_posts(array( */
-			/* 	'fields'					=> 'ids', */
-			/* 	'post_per_page'		=> -1, */
-			/* 	'post_type'				=> 'courses' */
-			/* )); */
 
-			$courses_to_update = explode( ",", $courses_to_assign, 50 );
-			$str_post_ID = $post_ID;
-			settype( $str_post_ID, "string" );
-			foreach ( $courses_to_update as $id) {
-				settype( $id, "string" );
-				update_post_meta( $id, 'assigned_instructors', $post_ID );
+			if ( $courses_to_assign ) {
+
 			}
 
-			/* if ( check_page_id_existence( $courses_to_assign, $available_course_ids ) && check_page_id_existence( $courses_to_assign, explode( ",", $currently_assigned[0], 50 ), true )) { */
-			/* 	if ( count($currently_assigned) > 0 ) { */
-			/* 		$currently_assigned = explode( ",", $currently_assigned[0], 50 ); */
+			if ( substr_count( $courses_to_assign, ',' ) > 0 ) {
+				$courses_to_update = explode( ",", $courses_to_assign, 50 );
+				$str_post_ID = $post_ID;
+				settype( $str_post_ID, "string" );
+				foreach ( $courses_to_update as $id) {
+					settype( $id, "string" );
+					update_post_meta( $id, 'assigned_instructors', $post_ID );
+				}
+			}
 
-			/* 		if ( is_array( $courses_to_assign ) ) { */
-			/* 			foreach ( $courses_to_assign as $id ) { */
-			/* 				if ( ! in_array( $id, $currently_assigned ) ) { */
-			/* 					array_push( $currently_assigned, $id ); */
-			/* 				} */
-			/* 			} */
-			/* 		} else { */
-			/* 			array_push( $currently_assigned, $courses_to_assign ); */
-			/* 		} */
-
-			/* 		$transitional_arr = $currently_assigned; */
-			/* 		$currently_assigned = []; */
-			/* 		$currently_assigned[0] = implode( ",", $transitional_arr ); */
-
-			/* 		update_post_meta($post_ID, 'assigned_courses', $currently_assigned[0]); */
-			/* 	} else { */
-					update_post_meta( $post_ID, 'assigned_courses', $courses_to_assign );
-				/* } */
-			/* } else { */
-				/* return; */
-			/* } */
+			update_post_meta( $post_ID, 'assigned_courses', $courses_to_assign );
 		}
 
 		// Remove values from assigned_courses metadata.

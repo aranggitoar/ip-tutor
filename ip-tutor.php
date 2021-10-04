@@ -53,6 +53,14 @@ define( 'IP_TUTOR_VERSION', '0.3.0' );
  */
 define( 'IP_TUTOR_LOCATION', plugin_dir_path( __FILE__ ) );
 define( 'IP_TUTOR_LOCATION_URL', plugin_dir_url( __FILE__ ) );
+define( 'IP_TUTOR_ADMIN_LOCATION', IP_TUTOR_LOCATION .
+	'admin/' );
+define( 'IP_TUTOR_ADMIN_LOCATION_URL', IP_TUTOR_LOCATION_URL
+	. 'admin/' );
+define( 'IP_TUTOR_PUBLIC_LOCATION', IP_TUTOR_LOCATION .
+	'public/' );
+define( 'IP_TUTOR_PUBLIC_LOCATION_URL', IP_TUTOR_LOCATION_URL
+	. 'public/' );
 
 
 /**

@@ -77,17 +77,6 @@ class IP_Tutor {
 	public function __construct()
 	{
 
-		if ( defined( 'IP_TUTOR_LOCATION' ) ) {
-			$this->version = IP_TUTOR_LOCATION;
-		} else {
-			$this->version = plugin_dir_path( __FILE__ );
-		}
-		if ( defined( 'IP_TUTOR_LOCATION_URL' ) ) {
-			$this->version = IP_TUTOR_LOCATION_URL;
-		} else {
-			$this->version = plugins_dir_url( __FILE__ );
-		}
-
 		if ( defined( 'IP_TUTOR_VERSION' ) ) {
 			$this->version = IP_TUTOR_VERSION;
 		} else {
