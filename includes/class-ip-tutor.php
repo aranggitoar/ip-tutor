@@ -77,11 +77,7 @@ class IP_Tutor {
 	public function __construct()
 	{
 
-		if ( defined( 'IP_TUTOR_VERSION' ) ) {
-			$this->version = IP_TUTOR_VERSION;
-		} else {
-			$this->version = '0.3.0';
-		}
+		$this->version = IP_TUTOR_VERSION;
 		$this->plugin_name = 'ip-tutor';
 		$this->main_cpt_name = 'ip-tutor';
 		$this->main_cpt_slug = 'instruktor';

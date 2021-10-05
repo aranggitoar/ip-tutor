@@ -8,7 +8,7 @@
  * Plugin Name:			Instructor Page for Tutor LMS
  * Plugin URI:			https://aranggitoar.net/ip-tutor
  * Description:			Static instructor pages for your Tutor LMS.
- * Version:					0.3.0
+ * Version:					0.4.0
  * License:					GPL-3.0
  * Author:					Aranggi Toar
  * Author URI:			https://aranggitoar.net
@@ -42,7 +42,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Define the current plugin version.
  * Semantic Versioning reference - https://semver.org.
  */
-define( 'IP_TUTOR_VERSION', '0.3.0' );
+define( 'IP_TUTOR_VERSION', '0.4.0' );
 
 
 /**
