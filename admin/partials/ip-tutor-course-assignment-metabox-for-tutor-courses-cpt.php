@@ -1,10 +1,13 @@
 <?php
 include_once IP_TUTOR_LOCATION . 'includes/ip-tutor-general-functions.php';
 
+// TODO: Add capability to create the page right from here.
+//       Add capability to assign more than one instructors.
+
 $ip_id = get_the_ID();
 
+// Get the currently assigned instructors page name and page id.
 $assigned_instructors = get_post_meta( $ip_id, 'assigned_instructors' );
-
 $currently_assigned_instructors; 
 
 if ( count( $assigned_instructors ) === 0 ) {
@@ -12,75 +15,55 @@ if ( count( $assigned_instructors ) === 0 ) {
 } else if ( substr_count( $assigned_instructors[0], ',' ) === 0 ) {
 	$currently_assigned_instructors = $assigned_instructors[0];
 } else {
-	$currently_assigned_instructors = explode( ',', $currently_assigned_instructors[0], 50 );
+  // Useless for now, as there would only be one instructor.
+  $currently_assigned_instructors = explode( ',', $currently_assigned_instructors[0], 50 );
+  foreach ( $currently_assigned_instructors as $id ) {
+    $currently_assigned_instructors[$id] = get_the_title( $id );
+  }
 }
 
+// Get the available instructor page name and page id.
 $available_instructors_ids = get_posts(array(
 	'fields'					=> 'ids',
 	'post_per_page'		=> -1,
 	'post_type'				=> 'ip-tutor'
 ));
 
-$available_instructors_ids = array_reverse($available_instructors_ids);
+$available_instructor_ids = array_reverse( $available_instructors_ids );
+$available_instructors = array();
 
-$available_instructor_titles = array();
-
-foreach ($available_instructors_ids as $id) {
-	array_push( $available_instructor_titles, get_the_title( $id ) );
+foreach ( $available_instructor_ids as $id ) {
+	$available_instructors[$id] = get_the_title( $id );
 }
 
 ?>
 
 <div class="tutor-option-field-row">
 	<div class="tutor-option-field-label">
-	  <label for="available_instructors">
-			<?php _e('Instructors available:', 'ip-tutor'); ?> <br />
-	  </label>
-	</div>
-	<div class="tutor-option-field tutor-option-tooltip">
-		<ul>
-			<?php
-			foreach ( $available_instructors_ids as $id ) {
-				echo '<li><b>('.$id.')</b> <i>'.get_the_title( $id ).'</i></li>';
-			}
-			?>
-		</ul>
-	</div>
-</div>
-
-<div class="tutor-option-field-row">
-	<div class="tutor-option-field-label">
-	  <label for="assigned_instructors">
-			<?php _e('Instructors assigned:', 'ip-tutor'); ?> <br />
-	  </label>
-	</div>
-	<div class="tutor-option-field tutor-option-tooltip">
-		<ul>
-			<?php
-			if ( count( $assigned_instructors ) === 0 ) {
-				_e('None.', 'ip-tutor');
-			} else {
-				foreach ( $assigned_instructors as $id ) {
-					echo '<li><b>('.$id.')</b>  <i>'.get_the_title( $id ).'</i></li>';
-				}
-			}
-			?>
-		</ul>
-	</div>
-</div>
-<div class="tutor-option-field-row">
-	<div class="tutor-option-field-label">
 		<label for="assign_instructors">
-		<?php _e('Instructors', 'tutor'); ?> <br />
+		<?php _e('Assigned Instructors', 'tutor'); ?> <br />
 		</label>
 	</div>
 	<div class="tutor-option-field tutor-option-tooltip">
-		<input type="text" name="assign_instructors" value="<?php echo $currently_assigned_instructors ?>"></input>
+    <select name="assign_instructors">
+      <option value="-1" disabled><?php _e('Choose instructors for this course'); ?></option>
+      <?php
+      foreach ( $available_instructors as $id => $title ) {
+        settype( $currently_assigned_instructors, "int" );
+        if ( $id === $currently_assigned_instructors ) {
+      ?>
+      <option value="<?php echo $id; ?>" selected="selected"><?php echo $title; ?></option>
+      <?php } else { ?>
+      <option value="<?php echo $id; ?>"><?php echo $title; ?></option>
+      <?php
+        }
+      }
+      ?>
+    </select>
+    <?php wp_nonce_field( 'save_assign_instructors_in_metadata', 'assign_instructors_nonce' ); ?>
 		<p class="desc">
-			<?php _e('Create a new instructor page or choose from an existing one.', 'tutor'); ?><br>
+			<?php _e('Assign a created instructor page here.', 'tutor'); ?><br>
 			<?php _e('This metabox is from Instructor Page for Tutor LMS plugin.', 'tutor'); ?>
-			<?php echo get_stylesheet_directory() ?>
-			<?php r($currently_assigned_instructors); ?>
 		</p>
 	</div>
 </div>
