@@ -15,44 +15,35 @@
 
 do_action('tutor_course/single/enrolled/before/instructors');
 
-$instructors = tutor_utils()->get_instructors_by_course();
-if ($instructors){
-	$count = is_array($instructors) ? count($instructors) : 0;
-	
+require_once ('../class-ip-tutor-public.php');
+
+$instructor = IP_Tutor_Public::get_ip_tutor_instructor_data ( get_the_ID() );
 	?>
-	<h4 class="tutor-segment-title"><?php $count>1 ? _e('About the instructors', 'tutor') : _e('About the instructor', 'tutor'); ?></h4>
+	<h4 class="tutor-segment-title"><?php _e('About the instructor', 'tutor'); ?></h4>
 
 	<div class="tutor-course-instructors-wrap tutor-single-course-segment" id="single-course-ratings">
-		<?php
-		foreach ($instructors as $instructor){
-		    $profile_url = tutor_utils()->profile_url($instructor->ID);
-			?>
 			<div class="single-instructor-wrap">
 				<div class="single-instructor-top">
                     <div class="tutor-instructor-left">
                         <div class="instructor-avatar">
-                            <a href="<?php echo $profile_url; ?>">
-                                <?php echo tutor_utils()->get_tutor_avatar($instructor->ID); ?>
+                            <a href="<?php echo $instructor['profile_url']; ?>">
+                                <img src="<?php echo $instructor['profile_picture_url']; ?>">
                             </a>
                         </div>
 
                         <div class="instructor-name">
-                            <h3><a href="<?php echo $profile_url; ?>"><?php echo $instructor->display_name; ?></a> </h3>
+                            <h3><a href="<?php echo $instructor['profile_url']; ?>"><?php echo $instructor['name']; ?></a></h3>
                             <?php
-                            if ( ! empty($instructor->tutor_profile_job_title)){
-                                echo "<h4>{$instructor->tutor_profile_job_title}</h4>";
+                            if ( ! empty($instructor['job_title'])){
+                                echo "<h4>{$instructor['job_title']}</h4>";
                             }
                             ?>
                         </div>
                     </div>
 					<div class="instructor-bio">
-						<?php echo $instructor->tutor_profile_bio ?>
+						<?php echo $instructor['bio']?>
 					</div>
 				</div>
-
-                <?php
-                $instructor_rating = tutor_utils()->get_instructor_ratings($instructor->ID);
-                ?>
 
 				<div class="single-instructor-bottom">
 					<div class="ratings">
@@ -69,13 +60,13 @@ if ($instructors){
 					<div class="courses">
 						<p>
 							<i class='tutor-icon-mortarboard'></i>
-							<?php echo tutor_utils()->get_course_count_by_instructor($instructor->ID); ?> <span class="tutor-text-mute"> <?php _e('Courses', 'tutor'); ?></span>
+							<?php echo $instructor['course_count']; ?> <span class="tutor-text-mute"> <?php _e('Courses', 'tutor'); ?></span>
 						</p>
 					</div>
 
 					<div class="students">
 						<?php
-						$total_students = tutor_utils()->get_total_students_by_instructor($instructor->ID);
+						$total_students = $instructor['total_students'];
 						?>
 
 						<p>
@@ -86,12 +77,8 @@ if ($instructors){
 					</div>
 				</div>
 			</div>
-			<?php
-		}
-		?>
 	</div>
 	<?php
-}
 
 do_action('tutor_course/single/enrolled/after/instructors');
 
