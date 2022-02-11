@@ -81,7 +81,10 @@ class IP_Tutor {
 		$this->plugin_name = 'ip-tutor';
 		$this->main_cpt_name = 'ip-tutor';
 		$this->main_cpt_slug = 'instruktor';
-		$this->tutor_courses_cpt_name = 'courses';
+
+    // Get Tutor LMS' cpt name.
+    require_once( BASE_LOCATION . 'tutor/tutor.php' );
+		$this->tutor_courses_cpt_name = tutor()->course_post_type;
 
 		$this->load_dependencies();
 		$this->set_locale();
@@ -216,13 +219,6 @@ class IP_Tutor {
 			'save_instructor_page_meta'
 		);
 
-    require_once( BASE_LOCATION . 'tutor/tutor.php' );
-		$this->loader->add_action(
-			'save_post_' . tutor ()->course_post_type,
-			$plugin_admin,
-			'save_instructor_page_meta_from_tutor'
-		);
-
 		add_filter( 'custom_menu_order', '__return_true' );
 		$this->loader->add_filter(
 			'menu_order',
@@ -237,9 +233,9 @@ class IP_Tutor {
 		);
 
 		$this->loader->add_action(
-			'tutor_course_builder_metabox_before',
+			'tutor_save_course_after',
 			$plugin_admin,
-			'load_ip_tutor_metabox_view_for_tutor'
+			'save_instructor_page_meta_from_tutor'
 		);
 
 	}
