@@ -45,7 +45,6 @@ foreach ( $available_instructor_ids as $id ) {
 		</label>
 	</div>
 	<div class="tutor-option-field tutor-option-tooltip">
-    <?php r($assigned_instructors); ?>
     <select id="assign_instructors" name="assign_instructors">
       <option value="-1" <?php echo selected( $currently_assigned_instructors, '' ); ?> disabled><?php _e('Choose instructors for this course'); ?></option>
       <?php
