@@ -51,6 +51,8 @@ define( 'IP_TUTOR_VERSION', '0.4.0' );
  * Both plugin_dir_path and plugin_dir_url gets the filesystem and
  * URL directory path with trailing slash added for the __FILE__.
  */
+define( 'BASE_LOCATION', plugin_dir_path( __DIR__ ) );
+define( 'BASE_LOCATION_URL', plugin_dir_url( __DIR__ ) );
 define( 'IP_TUTOR_LOCATION', plugin_dir_path( __FILE__ ) );
 define( 'IP_TUTOR_LOCATION_URL', plugin_dir_url( __FILE__ ) );
 define( 'IP_TUTOR_ADMIN_LOCATION', IP_TUTOR_LOCATION .
