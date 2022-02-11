@@ -82,7 +82,6 @@ class IP_Tutor_Public
 		$this->version = $version;
 		$this->main_cpt_name = $main_cpt_name;
 		$this->main_cpt_slug = $main_cpt_slug;
-		$this->tutor_courses_cpt_name = $tutor_courses_cpt_name;
 
 	}
 
@@ -173,46 +172,6 @@ class IP_Tutor_Public
 
 
 	/**
-	 * TODO FOR ALL THE FOLLOWING FUNCTIONS: Integrate with the
-	 * default instructor assignment logic and database management.
-	 * Tutor has a specific table created for assigned instructors and
-	 * their basic informations.
-	 */
-
-
-	/**
-	 * Retrieve the requested Tutor LMS course instructor short biography.
-	 *
-	 * @since     0.3.0
-	 * @param			int					$post_ID
-	 *						ID of the current post.
-	 * @return    string
-	 *						The requested Tutor LMS course instructor short
-	 *						biography.
-	 */
-	public static function get_current_course_instructor_bio( $post_ID )
-	{
-		return get_post_meta( $post_ID, 'short_biography' )[0];
-	}
-
-
-	/**
-	 * Retrieve the requested Tutor LMS course instructor job title.
-	 *
-	 * @since     0.3.0
-	 * @param			int					$post_ID
-	 *						ID of the current post.
-	 * @return    string
-	 *						The requested Tutor LMS course instructor job title.
-	 */
-	public static function get_current_course_instructor_job_title(
-		$post_ID )
-	{
-		return get_post_meta( $post_ID, 'job_title' )[0];
-	}
-
-
-	/**
 	 * TODO: Check if there is more than one instructor assigned.
 	 *
 	 * Retrieve the requested Tutor LMS course instructor post id.
@@ -223,7 +182,7 @@ class IP_Tutor_Public
 	 * @return    string
 	 *						The requested Tutor LMS course instructor post id.
 	 */
-	public static function get_current_course_instructor_post_id(
+	private static function get_current_course_instructor_post_id(
 		$post_ID )
 	{
 		return get_post_meta( $post_ID, 'assigned_instructors' )[0];
@@ -234,22 +193,42 @@ class IP_Tutor_Public
 	 * TODO: Check if the current theme doesn't have the required
 	 * template and copy a modified one.
 	 *
-	 * Retrieve the requested Tutor LMS course instructor name.
+	 * Assemble the IP Tutor instructor's data.
 	 *
-	 * @since     0.3.0
+	 * @since     0.4.0
 	 * @param			int					$post_ID
 	 *						ID of the current post.
-	 * @return    string
-	 *						The requested Tutor LMS course instructor name.
+	 * @return    array
+	 *						The requested Tutor LMS course instructor data.
 	 */
-	public static function get_current_course_instructor_name(
-		$post_ID )
+	public static function get_ip_tutor_instructor_data( $post_ID )
 	{
-		$ip_page_id =
-			IP_Tutor_Public::get_current_course_instructor_post_id(
-				$post_ID );
+    if ( get_post_type( $post_ID ) === "ip-tutor" ) {
+      $ip_page_id = $post_ID;
+    } else {
+      $ip_page_id =
+        IP_Tutor_Public::get_current_course_instructor_post_id(
+          $post_ID );
+    }
+    $name = get_the_title( $ip_page_id );
+    $bio = get_post_meta( $ip_page_id, 'short_biography' )[0];
+    $job_title = get_post_meta( $ip_page_id, 'job_title' )[0];
+    $profile_picture_url = get_post_meta( $ip_page_id,
+      'profile_picture' )[0]['url'];
+    $profile_url = get_permalink( $ip_page_id );
+    $course_count = '';
+    $total_students = '';
 
-		return get_the_title( $ip_page_id );
+    return array (
+      'ID' => $ip_page_id,
+      'name' => $name,
+      'bio' => $bio,
+      'job_title' => $job_title,
+      'profile_picture_url' => $profile_picture_url,
+      'profile_url' => $profile_url,
+      'course_count' => $course_count,
+      'total_students' => $total_students
+    );
 	}
 
 }
