@@ -363,23 +363,6 @@ class IP_Tutor_Admin
 	{
 		include_once IP_TUTOR_LOCATION . 'includes/ip-tutor-general-functions.php';
 
-    // Make sure that an autosave is not occuring.
-    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-      return $post_ID;
-    }
-       
-    // Make sure that the user requesting change has the correct
-    // access level/permission.
-    if ( 'page' == $_POST['post_type'] ) {
-      if ( !current_user_can( 'edit_page', $post_ID ) ) {
-        return $post_ID;
-      }
-    } else {
-      if ( !current_user_can( 'edit_page', $post_ID ) ) {
-        return $post_ID;
-      }
-    }
-
     // Add values into job_title metadata.
     // The metabox is in:
     // ./partials/ip-tutor-common-information-metabox.php
@@ -455,7 +438,7 @@ class IP_Tutor_Admin
 				settype( $str_post_ID, "string" );
 				foreach ( $courses_to_update as $id) {
 					settype( $id, "string" );
-					update_post_meta( $id, 'assigned_instructors', $post_ID );
+					update_post_meta( $id, 'assigned_courses', $post_ID );
 				}
 			} else {
         update_post_meta( $post_ID, 'assigned_courses', $courses_to_assign );
@@ -574,47 +557,18 @@ class IP_Tutor_Admin
 	 */
 	public function save_instructor_page_meta_from_tutor( $post_ID )
 	{
-    // Make sure that an autosave is not occuring.
-    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-      return $post_ID;
-    }
-       
-    // Make sure that the user requesting change has the correct
-    // access level/permission.
-    if ( 'page' == $_POST['post_type'] ) {
-      if ( !current_user_can( 'edit_page', $post_ID ) ) {
-        return $post_ID;
-      }
-    } else {
-      if ( !current_user_can( 'edit_page', $post_ID ) ) {
-        return $post_ID;
-      }
-    }
-
-    // Add values into assigned_instructors metadata.
-    // The metabox is in:
-    // ./partials/ip-tutor-course-assignment-metabox-for-tutor-courses-cpt.php
+    // Verify assign_instructors nonce.
     if ( ! wp_verify_nonce( $_POST['assign_instructors_nonce'],
       'save_assign_instructors_in_metadata' ) ) {
       return $post_ID;
     }
 
+    // Add values into assigned_instructors metadata.
+    // The metabox is in:
+    // ./partials/ip-tutor-course-assignment-metabox-for-tutor-courses-cpt.php
 		if ( ! empty( $_POST['assign_instructors'] ) ) {
 			$instructors_to_assign = sanitize_text_field( $_POST['assign_instructors'] );
-
-			if ( substr_count( $instructors_to_assign, ',' ) > 0 ) {
-        // Useless for now, as there could only be one instructor
-        // assigned.
-				$instructors_to_update = explode( ",", $instructors_to_assign, 50 );
-				$str_post_ID = $post_ID;
-				settype( $str_post_ID, "string" );
-				foreach ( $instructors_to_update as $id) {
-					settype( $id, "string" );
-					update_post_meta( $id, 'assigned_instructors', $post_ID );
-				}
-			} else {
-			  update_post_meta( $post_ID, 'assigned_instructors', $instructors_to_assign );
-      }
+      update_post_meta( $post_ID, '_assigned_instructors', $instructors_to_assign );
 		}
   }
 

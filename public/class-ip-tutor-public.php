@@ -185,7 +185,7 @@ class IP_Tutor_Public
 	private static function get_current_course_instructor_post_id(
 		$post_ID )
 	{
-		return get_post_meta( $post_ID, 'assigned_instructors' )[0];
+		return get_post_meta( $post_ID, '_assigned_instructors' )[0];
 	}
 
 

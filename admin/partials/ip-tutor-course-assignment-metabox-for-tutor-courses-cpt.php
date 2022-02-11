@@ -7,7 +7,7 @@ include_once IP_TUTOR_LOCATION . 'includes/ip-tutor-general-functions.php';
 $ip_id = get_the_ID();
 
 // Get the currently assigned instructors page name and page id.
-$assigned_instructors = get_post_meta( $ip_id, 'assigned_instructors' );
+$assigned_instructors = get_post_meta( $ip_id, '_assigned_instructors' );
 $currently_assigned_instructors; 
 
 if ( count( $assigned_instructors ) === 0 ) {
@@ -45,25 +45,22 @@ foreach ( $available_instructor_ids as $id ) {
 		</label>
 	</div>
 	<div class="tutor-option-field tutor-option-tooltip">
-    <select name="assign_instructors">
-      <option value="-1" disabled><?php _e('Choose instructors for this course'); ?></option>
+    <?php r($assigned_instructors); ?>
+    <select id="assign_instructors" name="assign_instructors">
+      <option value="-1" <?php echo selected( $currently_assigned_instructors, '' ); ?> disabled><?php _e('Choose instructors for this course'); ?></option>
       <?php
       foreach ( $available_instructors as $id => $title ) {
-        settype( $currently_assigned_instructors, "int" );
-        if ( $id === $currently_assigned_instructors ) {
+        settype( $id, "string" );
       ?>
-      <option value="<?php echo $id; ?>" selected="selected"><?php echo $title; ?></option>
-      <?php } else { ?>
-      <option value="<?php echo $id; ?>"><?php echo $title; ?></option>
+      <option value="<?php echo $id; ?>" <?php echo selected( $currently_assigned_instructors, $id ); ?>><?php echo $title; ?></option>
       <?php
-        }
       }
       ?>
     </select>
-    <?php wp_nonce_field( 'save_assign_instructors_in_metadata', 'assign_instructors_nonce' ); ?>
 		<p class="desc">
 			<?php _e('Assign a created instructor page here.', 'tutor'); ?><br>
 			<?php _e('This metabox is from Instructor Page for Tutor LMS plugin.', 'tutor'); ?>
 		</p>
+    <?php wp_nonce_field('save_assign_instructors_in_metadata', 'assign_instructors_nonce'); ?>
 	</div>
 </div>
