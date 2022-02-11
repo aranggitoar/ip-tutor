@@ -239,7 +239,20 @@ class IP_Tutor_Admin
 
 
 	/**
-	 * Load metaboxes for IP Tutor's main CPT admin view.
+	 * Make WordPress' form element accept file types.
+	 *
+	 * @since			0.4.0
+	 * @return		string
+	 *						The updated attribute.
+	 */
+	public function update_edit_form()
+	{
+    echo ' enctype="multipart/form-data"';
+	}
+
+
+	/**
+	 * Load common information metabox for IP Tutor's main CPT admin view.
 	 *
 	 * @since			0.2.0
 	 * @param			boolean			$echo
@@ -263,7 +276,31 @@ class IP_Tutor_Admin
 
 
 	/**
-	 * Load metaboxes for IP Tutor's main CPT admin view.
+	 * Load profile picture metabox for IP Tutor's main CPT admin view.
+	 *
+	 * @since			0.4.0
+	 * @param			boolean			$echo
+	 *						To echo the $output or return the $output
+	 * @return		string			$output
+	 *						The contents of the included file.
+	 */
+	public function load_ip_tutor_pp_metabox_view( $echo = true )
+	{
+		ob_start();
+		include IP_TUTOR_LOCATION
+			. 'admin/partials/ip-tutor-profile-picture-metabox.php';
+		$output = ob_get_clean();
+
+		if ($echo){
+			echo $output;
+		} else{
+			return $output;
+		}
+	}
+
+
+	/**
+	 * Load course assignment metabox for IP Tutor's main CPT admin view.
 	 *
 	 * @since			0.2.0
 	 * @param			boolean			$echo
@@ -298,42 +335,119 @@ class IP_Tutor_Admin
 			$this->main_cpt_name
 		);
 
-		add_meta_box(
-			'courses-assignment-metabox',
-			__( 'Course Assignment', 'ip-tutor' ),
-			array( $this, 'load_ip_tutor_ca_metabox_view' ),
-			$this->main_cpt_name
-		);
+    // Disabled for now
+		/* add_meta_box( */
+		/* 	'courses-assignment-metabox', */
+		/* 	__( 'Course Assignment', 'ip-tutor' ), */
+		/* 	array( $this, 'load_ip_tutor_ca_metabox_view' ), */
+		/* 	$this->main_cpt_name */
+		/* ); */
+
+    add_meta_box(
+      'profile-picture-metabox',
+      __( 'Profile Picture', 'ip-tutor' ),
+      array( $this, 'load_ip_tutor_pp_metabox_view' ),
+      $this->main_cpt_name
+    );
 	}
 
 
 	/**
 	 * Save the inserted metadatas into database.
+   * This function is called when an IP Tutor page is saved.
 	 *
 	 * @param			int					$post_ID
 	 *						ID of the current post.
 	 */
 	public function save_instructor_page_meta( $post_ID )
 	{
-		include_once "includes/ip-tutor-general-functions.php";
+		include_once IP_TUTOR_LOCATION . 'includes/ip-tutor-general-functions.php';
+
+    // Make sure that an autosave is not occuring.
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+      return $post_ID;
+    }
+       
+    // Make sure that the user requesting change has the correct
+    // access level/permission.
+    if ( 'page' == $_POST['post_type'] ) {
+      if ( !current_user_can( 'edit_page', $post_ID ) ) {
+        return $post_ID;
+      }
+    } else {
+      if ( !current_user_can( 'edit_page', $post_ID ) ) {
+        return $post_ID;
+      }
+    }
+
+    // Add values into job_title metadata.
+    // The metabox is in:
+    // ./partials/ip-tutor-common-information-metabox.php
+    if ( ! wp_verify_nonce( $_POST['job_title_nonce'],
+      'save_job_title_in_metadata' ) ) {
+      return $post_ID;
+    }
 
 		if ( ! empty( $_POST['job_title'] ) ) {
-			$job_title = sanitize_text_field( $POST['job_title'] );
+			$job_title = sanitize_text_field( $_POST['job_title'] );
 			update_post_meta( $post_ID, 'job_title', $job_title );
 		}
 
+    // Add values into short_biography metadata.
+    // The metabox is in:
+    // ./partials/ip-tutor-common-information-metabox.php
+    if ( ! wp_verify_nonce( $_POST['short_biography_nonce'],
+      'save_short_biography_in_metadata' ) ) {
+      return $post_ID;
+    }
+
 		if ( ! empty( $_POST['short_biography'] ) ) {
-			$bio = sanitize_text_field( $POST['short_biography'] );
+			$bio = sanitize_text_field( $_POST['short_biography'] );
 			update_post_meta( $post_ID, 'short_biography', $bio );
 		}
 
+    // Add values into profile_picture metadata.
+    // The metabox is in:
+    // ./partials/ip-tutor-profile-picture-metabox.php
+    if ( ! wp_verify_nonce( $_POST['profile_picture_nonce'],
+      'save_profile_picture_in_metadata' ) ) {
+      return $post_ID;
+    }
+
+		if ( ! empty( $_FILES['profile_picture']['name'] ) ) {
+      // Setup the array of supported file types.
+      $supported_types = array( 'image/png', 'image/jpg',
+        'image/jpeg' );
+      // Get the file type of the upload
+      $arr_file_type = wp_check_filetype( basename( $_FILES['profile_picture']['name']));
+      $uploaded_type = $arr_file_type['type'];
+       
+      // Check if the type is supported. If not, throw an error.
+      if ( in_array( $uploaded_type, $supported_types ) ) {
+        // Use the WordPress API to upload the file
+        $upload = wp_upload_bits( $_FILES['profile_picture']['name'], null, file_get_contents( $_FILES['profile_picture']['tmp_name'] ) );
+
+        if ( isset( $upload['error'] ) && $upload['error'] != 0 ) {
+          wp_die( 'There was an error uploading your file. The error is: ' . $upload['error'] );
+        } else {
+          update_post_meta( $post_ID, 'profile_picture', $upload );
+        }
+
+      } else {
+        wp_die( "The file type that you've uploaded is not a PNG, or JPG, or JPEG." );
+      }
+		}
+
 		// Add values into assigned_courses metadata.
+    // The metabox is in:
+    // ./partials/ip-tutor-course-assignment-metabox.php
+    if ( ! wp_verify_nonce( $_POST['assign_courses_nonce'],
+      'save_assign_courses_in_metadata' ) ) {
+      return $post_ID;
+    }
+
 		if ( ! empty( $_POST['assign_courses'] ) ) {
 			$courses_to_assign = sanitize_text_field( $_POST['assign_courses'] );
-
-			if ( $courses_to_assign ) {
-
-			}
 
 			if ( substr_count( $courses_to_assign, ',' ) > 0 ) {
 				$courses_to_update = explode( ",", $courses_to_assign, 50 );
@@ -343,13 +457,20 @@ class IP_Tutor_Admin
 					settype( $id, "string" );
 					update_post_meta( $id, 'assigned_instructors', $post_ID );
 				}
-			}
-
-			update_post_meta( $post_ID, 'assigned_courses', $courses_to_assign );
+			} else {
+        update_post_meta( $post_ID, 'assigned_courses', $courses_to_assign );
+      }
 		}
 
 		// Remove values from assigned_courses metadata.
-		if ( ! empty( $_POST['deassign_courses'] ) ){
+    // The metabox is in:
+    // ./partials/ip-tutor-course-assignment-metabox.php
+    if ( ! wp_verify_nonce( $_POST['deassign_courses_nonce'],
+      'save_deassign_courses_in_metadata' ) ) {
+      return $post_ID;
+    }
+
+		if ( ! empty( $_POST['deassign_courses'] ) ) {
 			$courses_to_deassign = sanitize_text_field( $_POST['deassign_courses'] );
 			$currently_assigned = get_post_meta( $post_ID, 'assigned_courses' );
 			$available_course_ids = get_posts(array(
@@ -405,6 +526,100 @@ class IP_Tutor_Admin
 
 
 	/**
+	 * Load metaboxes for IP Tutor's addition to Tutor LMS's admin view.
+	 *
+	 * @since			0.2.0
+	 * @param			boolean			$echo
+	 *						To echo the $output or return the $output
+	 * @return		string			$output
+	 *						The contents of the included file.
+	 */
+	public function load_ip_tutor_metabox_view_for_tutor(
+		$echo = true )
+	{
+		ob_start();
+		include IP_TUTOR_LOCATION
+			. 'admin/partials/ip-tutor-course-assignment-metabox-for-tutor-courses-cpt.php';
+		$output = ob_get_clean();
+
+		if ($echo){
+			echo $output;
+		} else{
+			return $output;
+		}
+	}
+
+
+	/**
+	 * Register the loaded metaboxes for IP Tutor's addition to Tutor
+	 * LMS's admin view.
+	 */
+	public function register_ip_metabox_for_tutor()
+	{
+		add_meta_box(
+			'ip-tutor-instructor',
+			__( 'Instructor Page', 'tutor' ),
+			array( $this, 'load_ip_tutor_metabox_view_for_tutor' ),
+			$this->tutor_courses_cpt_name
+		);
+	}
+
+
+	/**
+	 * Save the inserted metadatas into database.
+   * This function is called when a Tutor LMS type post is saved.
+	 *
+	 * @param			int					$post_ID
+	 *						ID of the current post.
+	 */
+	public function save_instructor_page_meta_from_tutor( $post_ID )
+	{
+    // Make sure that an autosave is not occuring.
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+      return $post_ID;
+    }
+       
+    // Make sure that the user requesting change has the correct
+    // access level/permission.
+    if ( 'page' == $_POST['post_type'] ) {
+      if ( !current_user_can( 'edit_page', $post_ID ) ) {
+        return $post_ID;
+      }
+    } else {
+      if ( !current_user_can( 'edit_page', $post_ID ) ) {
+        return $post_ID;
+      }
+    }
+
+    // Add values into assigned_instructors metadata.
+    // The metabox is in:
+    // ./partials/ip-tutor-course-assignment-metabox-for-tutor-courses-cpt.php
+    if ( ! wp_verify_nonce( $_POST['assign_instructors_nonce'],
+      'save_assign_instructors_in_metadata' ) ) {
+      return $post_ID;
+    }
+
+		if ( ! empty( $_POST['assign_instructors'] ) ) {
+			$instructors_to_assign = sanitize_text_field( $_POST['assign_instructors'] );
+
+			if ( substr_count( $instructors_to_assign, ',' ) > 0 ) {
+        // Useless for now, as there could only be one instructor
+        // assigned.
+				$instructors_to_update = explode( ",", $instructors_to_assign, 50 );
+				$str_post_ID = $post_ID;
+				settype( $str_post_ID, "string" );
+				foreach ( $instructors_to_update as $id) {
+					settype( $id, "string" );
+					update_post_meta( $id, 'assigned_instructors', $post_ID );
+				}
+			} else {
+			  update_post_meta( $post_ID, 'assigned_instructors', $instructors_to_assign );
+      }
+		}
+  }
+
+
+	/**
 	 * TODO: Use functions specifically for manipulating array.
 	 * Rearrange the order of Tutor LMS's submenus.
 	 *
@@ -440,47 +655,6 @@ class IP_Tutor_Admin
 
 		return $menu_order;
 	}
-
-
-	/**
-	 * Load metaboxes for IP Tutor's addition to Tutor LMS's admin view.
-	 *
-	 * @since			0.2.0
-	 * @param			boolean			$echo
-	 *						To echo the $output or return the $output
-	 * @return		string			$output
-	 *						The contents of the included file.
-	 */
-	public function load_ip_tutor_metabox_view_for_tutor(
-		$echo = true )
-	{
-		ob_start();
-		include IP_TUTOR_LOCATION
-			. 'admin/partials/ip-tutor-metaboxes-for-tutor-courses-cpt.php';
-		$output = ob_get_clean();
-
-		if ($echo){
-			echo $output;
-		} else{
-			return $output;
-		}
-	}
-
-
-	/**
-	 * Register the loaded metaboxes for IP Tutor's addition to Tutor
-	 * LMS's admin view.
-	 */
-	public function register_ip_metabox_for_tutor()
-	{
-		add_meta_box(
-			'ip-tutor-instructor',
-			__( 'Instructor Page', 'tutor' ),
-			array( $this, 'load_ip_tutor_metabox_view_for_tutor' ),
-			$this->tutor_courses_cpt_name
-		);
-	}
-
 }
 
 ?>
