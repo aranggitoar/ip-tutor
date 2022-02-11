@@ -99,6 +99,7 @@ if ( count( $assigned_courses ) === 0 ) {
 			}
 			?>
 		</p>
+    <?php wp_nonce_field( 'save_assign_courses_in_metadata', 'assign_courses_nonce' ); ?>
   </div>
 </div>
 
@@ -116,5 +117,6 @@ if ( count( $assigned_courses ) === 0 ) {
 			<?php _e('You can deassign several courses for each instructor.', 'ip-tutor'); ?>
 			<?php _e('To deassign more than one, follow this example: 65,127,788.', 'ip-tutor'); ?>
     </p>
+    <?php wp_nonce_field( 'save_deassign_courses_in_metadata', 'deassign_courses_nonce' ); ?>
   </div>
 </div>
