@@ -199,6 +199,12 @@ class IP_Tutor {
 		);
 
 		$this->loader->add_action(
+			'post_edit_form_tag',
+			$plugin_admin,
+			'update_edit_form',
+		);
+
+		$this->loader->add_action(
 			'add_meta_boxes',
 			$plugin_admin,
 			'register_metabox_for_tutor_submenu'
@@ -208,6 +214,13 @@ class IP_Tutor {
 			'save_post_' . $this->get_main_cpt_name(),
 			$plugin_admin,
 			'save_instructor_page_meta'
+		);
+
+    require_once( BASE_LOCATION . 'tutor/tutor.php' );
+		$this->loader->add_action(
+			'save_post_' . tutor ()->course_post_type,
+			$plugin_admin,
+			'save_instructor_page_meta_from_tutor'
 		);
 
 		add_filter( 'custom_menu_order', '__return_true' );
